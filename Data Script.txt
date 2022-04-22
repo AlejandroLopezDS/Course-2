@@ -1,0 +1,15 @@
+!pip install -q kaggle
+from google.colab import files
+files.upload()
+#create a kaggle folder
+!mkdir ~/.kaggle
+# Go on kaggle > Account > Create New API token
+# Save the json file in your laptop in a dedicated folder
+# copy the kaggle.json to folder created
+!cp kaggle.json ~/.kaggle
+#permission for the json to act
+!chmod 600 ~/.kaggle/kaggle.json
+# Datasets available here: 
+# https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009
+!kaggle datasets download -d artemkorottchenko/large-boatyacht-pricing-dataset
+!unzip large-boatyacht-pricing-dataset.zip
