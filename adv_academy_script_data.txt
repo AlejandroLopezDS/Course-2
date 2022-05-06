@@ -1,0 +1,64 @@
+import pandas as pd
+import io
+import numpy as np
+pd.options.display.max_columns = 100
+pd.options.display.max_rows = 50
+
+df = pd.read_csv(io.StringIO(open('/content/boat_dataset.csv', 'rb').read().decode('utf-8', errors='ignore')), sep=",")
+
+## Add element in the database for EDUCATIONAL PURPOSE ONLY
+# Add random date in order to do a proper temporal split
+df['Advertisement Date'] = pd.to_datetime(df['Advertisement Date'], format='%d.%m.%Y')
+#Here is a function that will automatically create a feature of random dates between a defined interval
+def random_datetimes_or_dates(start, end, out_format='datetime', n=10): 
+
+    '''   
+    unix timestamp is in ns by default. 
+    I divide the unix time value by 10**9 to make it seconds 
+    (or 24*60*60*10**9 to make it days).
+    The corresponding unit variable is passed to 
+    the pd.to_datetime function. 
+    Values for the (divide_by, unit) pair to select is defined by 
+    the out_format parameter.
+    for 1 -> out_format='datetime'
+    for 2 -> out_format=anything else
+    '''
+    (divide_by, unit) = (10**9, 's') if out_format=='datetime' else (24*60*60*10**9, 'D')
+
+    start_u = start.value//divide_by
+    end_u = end.value//divide_by
+
+    return pd.to_datetime(np.random.randint(start_u, end_u, n), unit=unit)
+
+
+np.random.seed(893717398)
+# Set parameters
+d_start = pd.to_datetime('2020-01-01')
+d_end = pd.to_datetime('2021-12-31')
+
+# Delete initial Advertisement Date -> if you want to keep the inital dates, don't run it
+df.drop(columns=['Advertisement Date'], inplace=True)
+
+# Run function
+df['Advertisement Date'] = random_datetimes_or_dates(d_start, d_end, out_format='datetime', n=len(df))
+
+# Keep the date and remove the time
+df['Advertisement Date']= df['Advertisement Date'].dt.date
+
+# Parse the date
+df['Advertisement Date'] = pd.to_datetime(df['Advertisement Date'], format='%Y-%m-%d')
+
+# Impute Advertissement Date by the the created one when they are missing
+#df['Advertisement Date'] = np.where(df['Advertisement Date'].isna(), df['date2'], df['Advertisement Date'])
+
+# Delete the random date created
+#df.drop(columns=['date2'], inplace=True)
+
+# Create duplicates
+temp = df.sample(n=500, random_state=893717398)
+df = df.append(temp)
+del(temp)
+df.reset_index(drop=True, inplace=True)
+
+df['Advertisement Date'] = df['Advertisement Date'].astype(str)
+
